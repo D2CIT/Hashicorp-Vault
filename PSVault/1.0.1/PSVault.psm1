@@ -1953,7 +1953,7 @@ function new-VaultSecretEngine         {
     .DESCRIPTION
      new-VaultSecretEngine will create a new secrets engine in vault
     .EXAMPLE  
-        $SecretEngineName = "kv-v2-CloudControl" 
+        $SecretEngineName = "kv-v2-test" 
         new-VaultSecretEngine  -SecretEngineName  $SecretEngineName -vaultobject $vaultobject    
     #>    
   
@@ -2032,7 +2032,7 @@ function remove-VaultSecretEngine      {
     .DESCRIPTION
      remove-VaultSecretEngine will create a new secrets engine in vault
     .EXAMPLE  
-        $SecretEngineName = "kv-v2-CloudControl" 
+        $SecretEngineName = "kv-v2-test" 
         remove-VaultSecretEngine  -SecretEngineName  $SecretEngineName -vaultobject $vaultobject -confirm $true   
     #>    
   
@@ -2092,7 +2092,7 @@ function get-VaultSecretEngine         {
     .DESCRIPTION
      get-VaultSecretEngine will get the properties of a secrets engine
     .EXAMPLE  
-        $SecretEngineName = "kv-v2-CloudControl" 
+        $SecretEngineName = "kv-v2-test" 
         get-VaultSecretEngine  -SecretEngineName  $SecretEngineName -vaultobject $vaultobject 
     #>    
   

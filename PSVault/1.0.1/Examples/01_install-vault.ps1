@@ -56,7 +56,7 @@ if($state.sealed -like $true){
 $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
     
 # Create KV version 2
-    $SecretEngineName = "kv-v2-CloudControl" 
+    $SecretEngineName = "kv-v2-test" 
     new-VaultSecretEngine  -SecretEngineName  $SecretEngineName -vaultobject $vaultobject
 # Set KV Engine configuration
     $uri = $VaultObject.uri + $SecretEngineName + "/config"
@@ -76,8 +76,8 @@ $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKE
 
    
 # Create /overwrite secret in SecretEngine
-    $secretPath  = "vsphere_api/cloudcontrol"
-    $username    = "admin_cloudControl" 
+    $secretPath  = "vsphere_api/test"
+    $username    = "admintest" 
     $password    = "Z33rgG3H31m12!!!!" 
     $environment = "test" 
     $tag         = "tag"
