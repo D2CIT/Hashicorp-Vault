@@ -1,6 +1,6 @@
 # PSVault
-Powershell module for using Hashicorpvault on windows
 
+Powershell client for Hashicorp Vault. 
 
 * [Blog Post : HashiCorp Vault on winddows with Powershell](https://d2c-it.nl/2019/03/27/hashicorp-vault-on-windows-with-powershell/)
  
@@ -56,6 +56,6 @@ get-command -Module PSVault
 * remove-VaultSecretEngine  
 * Update-Vault              
 
-#### Test function
+#### Test  
 * Import-PSVaultModule 
 
