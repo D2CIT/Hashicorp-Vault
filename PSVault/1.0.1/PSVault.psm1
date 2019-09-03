@@ -272,7 +272,7 @@ Function Add-Path                            {
             Write-host "[EnvPath] : $newpath is already added to the environment variables." -ForegroundColor green
         }else{
             $NewPath = $OldPath + ';' + $NewPath
-            Set-ItemProperty -Path "$Reg" -Name PATH -Value $NewPath -Confirm
+            Set-ItemProperty -Path "$Reg" -Name PATH -Value $NewPath -Confirm:$false
         }
     } #End of Process
 } #EndFunction
