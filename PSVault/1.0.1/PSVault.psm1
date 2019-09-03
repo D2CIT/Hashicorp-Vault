@@ -830,7 +830,9 @@ function set-DemoInstallVault          {
               start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash
 
         # setup LDAP
-        set-VaultLDAP -upndomain $LdapDomain
+            if($EnableLDAP){
+                set-VaultLDAP -upndomain $LdapDomain
+            }
 
     }
 
@@ -1094,24 +1096,14 @@ disable_mlock = true
 } #EndFunction
 Function Start-Vault                   {
     <#
-        .Synopsis
-            start-vault
-        .DESCRIPTION
-        start-vault
-        .EXAMPLE     
-        $vaultpath   = "$env:programfiles\Hashicorp\vault"
-        $UnsealKeys = ( "XttKFUURr5Om1ewXrNxQ7EZjD4sDgZLnF2NLMepQorWE",`
-                        "/jaEFUFBO9a03XnhuPFct3hGiac5jeDHX3MwCi0JA5Bz",` 
-                        "2QWADO1NPfEe+EXiH62SwU6SUHJAsFYpvdt2K6UJtj9W"
-                        )
-        $StartVault = start-vault -filepath $filepath -VAULT_ADDR $env:VAULT_ADDR -Unseal $true -VAULT_Token "s.yx2S17Cr61vc3F9IZ7fnlBE8" -unsealkeys $UnsealKeys -ReturnState -verbose
-        .EXAMPLE   
-        $StartVault = start-vault -filepath $filepath -VAULT_ADDR $env:VAULT_ADDR -Unseal $false -VAULT_Token "s.yx2S17Cr61vc3F9IZ7fnlBE8" -ReturnState -verbose
+    .Synopsis
+     start-vault
+    .DESCRIPTION
+     start-vault
+    .EXAMPLE     
+     $StartVault = start-vault -vaultpath $vaultpath -APIaddress "http://127.0.0.1:8200" 
     .EXAMPLE   
-        $StartVault = start-vault -filepath $filepath -VAULT_ADDR $env:VAULT_ADDR -Unseal $false 
-        .EXAMPLE   
-        $StartVault = start-vault -filepath $filepath -VAULT_ADDR $env:VAULT_ADDR -Unseal $false -autoInit
-             
+                  
     #>    
   
     [CmdletBinding()] 
@@ -1196,45 +1188,7 @@ Function Start-Vault                   {
             If($CurrentState){ 
             write-host "[vault]   : started succesfull "  -for green            
   
-            if($dsfdfdfsdfsd){
-                # Check if Vault is already initilized (Is only needed the first time)
-                write-host "[vault]   : Initialized       = $($CurrentState.Initialized) " -for green
-                If($autoInit -eq $true){
-                If($CurrentState.Initialized -eq $false){                                    
-                    Write-host "[vault]   : Initializing the Vault" -for Magenta -BackgroundColor Black
-                    
-                    start-VaultInit -APIAddress $APIaddress -ExportXML -exportfile $VaultKeysXML -VaultPath $VaultPath
-
-                }else{
-                    write-host "[vault]   : Initialized       = $($CurrentState.Initialized) " -for green 
-                }#EndIf            
-                }#EndIf
-            
-            # Check if Sealed
-                If($($CurrentState.Sealed)){
-                write-host "[vault]   : Sealed            = $($CurrentState.Sealed)      "  -for green 
-                }else{
-                write-host "[vault]   : Sealed            = $($CurrentState.Sealed)      "  -for yellow      
-                }#EndIf
-
-            # If Sealed --> Unseal
-                If($unseal -eq $true){
-                #Check count of unseal keys
-                
-                If($UnsealKeys.count -lt $Keycount){
-                    Write-warning "[vault]   :  Needed 3 unsealkeys to unseal vault (UnsealKeys= $($UnsealKeys.count))"  
-                }else{
-                        start-unsealVault -UnsealKeys $UnsealKeys  -APIAddress $APIaddress -VaultPath $VaultPath
-                }#EndIf
-
-                }#End Unseal
-
-            # Check state
-                $CurrentState   = get-Vaultstatus -APIAddress $APIaddress -VaultPath $VaultPath
-                If($CurrentState.Sealed -like $true){
-                write-host "[vault]   :  - UnsealProgress = $($CurrentState.UnsealProgress)      "  -ForegroundColor yellow 
-                }
-            }
+       
             # Show address to access vault via the browser
                 write-host "[vault]   : open $($APIaddress) to connect via Browser to Vault " -ForegroundColor green 
 
