@@ -1,4 +1,4 @@
 git pull
 git add *
-git commit -m "update"
+git commit -m read-host
 git push origin master
