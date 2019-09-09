@@ -32,13 +32,12 @@
     
     #SECRETSENGINE
     # Create KV version 1 (not working, will be fixed)
-        ##$SecretEngineName = "kv-v1-Cloud" 
-        new-VaultSecretEngine -vaultobject $vaultobject -SecretEngineName $SecretEngineName -KV_version 1  
+        #$SecretEngineName = "kv-v1-Cloud" 
+        #new-VaultSecretEngine -vaultobject $vaultobject -SecretEngineName $SecretEngineName -KV_version 1  
     
     # Create KV version 2
         $SecretEngineName = "kv-v2-Cloud" 
         new-VaultSecretEngine -vaultobject $vaultobject -SecretEngineName $SecretEngineName -KV_version 2
-    
     
     # Get KV Engine configuration
         $uri = $VaultObject.uri + $SecretEngineName + "/config"
@@ -128,12 +127,9 @@
     
         $uri = $VaultObject.uri + "sys/generate-root/attempt" 
         Invoke-RestMethod -Uri $uri -Method put -Headers $VaultObject.auth_header
-    
-    
+      
         $uri = $VaultObject.uri + "sys/generate-root/attempt" 
         Invoke-RestMethod -Uri $uri -Method Delete -Headers $VaultObject.auth_header
-    
-    
     
     # Health Information
         $uri = $VaultObject.uri + "sys/health" 
@@ -168,7 +164,7 @@
         $uri = $VaultObject.uri + "/sys/metrics" 
         $result = Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
         $result.Gauges
-        $result.Samples | ft
+        $result.Samples | format-table
        
     # plugins catalog (endpoint is used to read, register, update, and remove plugins in Vault's catalog. Plugins must be registered before use, and once registered backends can use the plugin by querying the catalog.)
         $uri = $VaultObject.uri + "sys/plugins/catalog" 
@@ -215,10 +211,12 @@
         $uri  = $VaultObject.uri + "sys/policies/acl/admin"
         $AdminPolicy =  '{
           "policy": "# Manage auth methods broadly across Vault\npath \"auth/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# Create, update, and delete auth methods\npath \"sys/auth/*\"\n{\n  capabilities = [\"create\", \"update\", \"delete\", \"sudo\"]\n}\n\n# List auth methods\npath \"sys/auth\"\n{\n  capabilities = [\"read\"]\n}\n\n# List existing policies\npath \"sys/policies/acl\"\n{\n  capabilities = [\"read\"]\n}\n\n# Create and manage ACL policies \npath \"sys/policies/acl/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# List, create, update, and delete key/value secrets\npath \"secret/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# Manage secret engines\npath \"sys/mounts/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# List existing secret engines.\npath \"sys/mounts\"\n{\n  capabilities = [\"read\"]\n}\n\n# Read health checks\npath \"sys/health\"\n{\n  capabilities = [\"read\", \"sudo\"]\n}"
-        }'
+        }
+        '
         $ProvisionerPolicy =  '{
           "policy": "# Manage auth methods broadly across Vault\npath \"auth/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# Create, update, and delete auth methods\npath \"sys/auth/*\"\n{\n  capabilities = [\"create\", \"update\", \"delete\", \"sudo\"]\n}\n\n# List auth methods\npath \"sys/auth\"\n{\n  capabilities = [\"read\"]\n}\n\n# List existing policies\npath \"sys/policies/acl\"\n{\n  capabilities = [\"read\"]\n}\n\n# Create and manage ACL policies via API & UI\npath \"sys/policies/acl/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\n\n# List, create, update, and delete key/value secrets\npath \"secret/*\"\n{\n  capabilities = [\"create\", \"read\", \"update\", \"delete\", \"list\"]\n}"
         }'
+
         Invoke-RestMethod -uri $uri  `
                           -headers $($vaultObject.auth_header) `
                           -Method post `
@@ -411,7 +409,7 @@
     
     #username password
         #Create
-        $username = "voordee"
+        $username = "MyUsername"
         $Password = Read-host "New Password"
         $uri = $VaultObject.uri + "auth/userpass/users/$username"
         $payload = "{
@@ -430,11 +428,11 @@
         $user.data
     
         #Delete
-        $uri = $VaultObject.uri + "auth/userpass/users/mark"
+        $uri = $VaultObject.uri + "auth/userpass/users/$username"
         Invoke-RestMethod -Uri $uri -Method delete -Headers $VaultObject.auth_header
     
         #Update Password
-        $uri = $VaultObject.uri + "auth/userpass/users/mark"
+        $uri = $VaultObject.uri + "auth/userpass/users/$username"
         $Password = read-host -Prompt "Password"
         $payload = "{
           `"password`": `"$Password`"
@@ -442,7 +440,7 @@
         Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $payload
     
         #Update Policies on User
-        $uri = $VaultObject.uri + "auth/userpass/users/mark/policies"
+        $uri = $VaultObject.uri + "auth/userpass/users/$username/policies"
     
         $payload = "{
           `"policies`": [`"admin`", `"default`"]
@@ -482,7 +480,7 @@
           Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $payload
         }catch{
           $get_error = $error[0]
-          $StatusCode   = $_.Exception.Response.StatusCode.value__
+          $StatusCode   = $get_error.Exception.Response.StatusCode.value__
           $StatusCodeMessage =  Get-VaultStatuscode -StatusCodes $StatusCode
           $StatusCodeMessage
         } 
