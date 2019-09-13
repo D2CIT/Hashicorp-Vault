@@ -740,7 +740,7 @@ Function Remove-StringSpecialCharacter       {
       $Str -replace $regex, ""
     }
   } #PROCESS
-} #EndFunction
+} #End Function
 
 ##############################################################################
 # Vault Functions using api 
@@ -1423,11 +1423,11 @@ function get-Vaultobject               {
         # Client token
         [Parameter(Mandatory=$true,Position=1)]
         [String]
-        $Token 
-        
+        $Token ,
+
         # prefix for vault path
-        [Parameter(Mandatory=$false)]
-        [String]$prefix      = "/v1/" 
+        #[Parameter(Mandatory=$false)]
+        #[String]$prefix      = "/v1/" 
     )
 
     begin{
@@ -1435,6 +1435,7 @@ function get-Vaultobject               {
     }
 
     process{
+    
         $vaultobject = [PSCustomObject]@{'uri'= $Address + $prefix
                             'auth_header' = @{'X-Vault-Token'=$Token}
                             } 
@@ -1533,7 +1534,7 @@ Function start-VaultInit               {
             }else{
                 #Check Status
                 if($VaultObject){
-                    $uri  = $VaultObject.uri + "sys/init"
+                    $uri  = $VaultObject.uri + "/v1/sys/init"
                 }elseif($apiaddres){
                     $uri  = $apiaddress + "/v1/sys/init" 
                 }else{
@@ -1677,7 +1678,7 @@ function set-VaultUnseal               {
         "key": "' + $unsealkey + '"
     }'
     if($VaultObject){
-        $uri = $VaultObject.uri + "sys/unseal"
+        $uri = $VaultObject.uri + "/v1/sys/unseal"
         $unseal = Invoke-RestMethod -uri $uri -headers $($vaultObject.auth_header) -Method put -body $Payload 
     }elseif($apiaddress){
         $uri = $apiaddress  + "/v1/sys/unseal"
@@ -1733,7 +1734,7 @@ process{
     If($userInput -like "yes"){
         #Seal Vault :
                     if($VaultObject){ 
-        $uri = $VaultObject.uri + "sys/seal"
+        $uri = $VaultObject.uri + "/v1/sys/seal"
         Invoke-RestMethod -uri $uri -headers $($vaultObject.auth_header) -Method put
     }
                     if($apiaddress){
@@ -1985,7 +1986,7 @@ function new-VaultSecretEngine         {
     
     )
     
-    $uri =  "$($vaultobject.uri)sys/mounts/$SecretEngineName"    
+    $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"    
     
     $payload = "{
 `"type`": `"kv`",
@@ -2068,7 +2069,7 @@ function remove-VaultSecretEngine      {
         }#EndIf
     
         If($userInput -like "yes"){
-            $uri =  "$($vaultobject.uri)sys/mounts/$SecretEngineName"
+            $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"
     
             try {
                 $delete_Secrets_Engine = Invoke-RestMethod -uri $uri  `
@@ -2118,7 +2119,7 @@ function get-VaultSecretEngine         {
     )
 
     try{
-        $uri = $VaultObject.uri + $SecretEngineName + "/config"
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
         Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
         return $true
     }catch{
@@ -2180,7 +2181,7 @@ function set-VaultSecret               {
     }
     
     
-    $uri  = $VaultObject.uri + $Path
+    $uri  = $VaultObject.uri + "v1" + $Path
     
     try{
         $data ="{`"data`": { `"username`": `"$username`", `"password`": `"$Password`" , `"environment`": `"$environment`" , `"Tag`": `"$tag`" , `"server`": `"$server`" }}"
@@ -2221,7 +2222,7 @@ function get-VaultSecret               {
     }
     
     
-    $uri  = $VaultObject.uri + $Path
+    $uri  = $VaultObject.uri + "/v1/" + $Path
       
     try{
         $result = Invoke-RestMethod -uri $uri  `
