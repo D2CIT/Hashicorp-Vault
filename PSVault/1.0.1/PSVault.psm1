@@ -1423,7 +1423,7 @@ function get-Vaultobject               {
         # Client token
         [Parameter(Mandatory=$true,Position=1)]
         [String]
-        $Token ,
+        $Token 
 
         # prefix for vault path
         #[Parameter(Mandatory=$false)]
