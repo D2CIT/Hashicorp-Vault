@@ -1424,6 +1424,10 @@ function get-Vaultobject               {
         [Parameter(Mandatory=$true,Position=1)]
         [String]
         $Token 
+        
+        # prefix for vault path
+        [Parameter(Mandatory=$false)]
+        [String]$prefix      = "/v1/" 
     )
 
     begin{
