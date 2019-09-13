@@ -2647,5 +2647,3 @@ Function Import-PSVaultModule          {
 } #EndFunction 
 
 Export-ModuleMember -Function *
-
-
