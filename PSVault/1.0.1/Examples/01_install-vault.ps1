@@ -20,7 +20,7 @@
   Stop-VaultTask
 
 # Seal Vault
-  $vaultobject = $(Get-Vault -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
+  $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
   set-VaultSeal -vaultobject $vaultobject
 
 
