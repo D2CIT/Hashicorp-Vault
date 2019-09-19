@@ -59,3 +59,7 @@ get-command -Module PSVault
 #### Test function
 * Import-PSVaultModule 
 
+
+####Ublock files after download
+$files =  get-childitem -path  "C:\Program Files\WindowsPowerShell\Modules\psvault" -recurse | where {$_.Attributes -eq "Archive" }
+foreach($file in $files){ write-host " - Unblock $($file.FullName)" ; Unblock-File -Path  $file.FullName    }
