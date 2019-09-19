@@ -1981,12 +1981,16 @@ function new-VaultSecretEngine         {
         [boolean]$force_no_cache = $true , 
     
         [Parameter(Mandatory=$false)]
-            [ValidateSet("1", "2")]
+        [ValidateSet("1", "2")]
         $KV_version = 2
     
     )
     
-    $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"    
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri =  "$($vaultobject.uri)/sys/mounts/$SecretEngineName"  
+    }else{
+        $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"  
+    }  
     
     $payload = "{
 `"type`": `"kv`",
@@ -2057,7 +2061,13 @@ function remove-VaultSecretEngine      {
         [boolean]$confirm=$true
     
     )
-    
+ 
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri =  "$($vaultobject.uri)/sys/mounts/$SecretEngineName"  
+    }else{
+        $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"  
+    }  
+
 
     if((get-VaultSecretEngine  -vaultobject $vaultobject -SecretEngineName $SecretEngineName) -like $true){
         write-warning "Remove secretEngine $SecretEngineName "
@@ -2069,7 +2079,7 @@ function remove-VaultSecretEngine      {
         }#EndIf
     
         If($userInput -like "yes"){
-            $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"
+            
     
             try {
                 $delete_Secrets_Engine = Invoke-RestMethod -uri $uri  `
@@ -2119,6 +2129,12 @@ function get-VaultSecretEngine         {
     )
 
     try{
+        if($($vaultobject.uri) -like "*/v1"){
+            $uri = $VaultObject.uri  + "/" + $SecretEngineName + "/config"
+        }else{
+            $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
+        }  
+
         $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
         Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
         return $true
@@ -2174,14 +2190,20 @@ function set-VaultSecret               {
             
     )
     
+    #Set path for KV version 1 or 2
     if($kvversion -like 2){
         $path = "$secretEngineName/data/$secretPath"
     }else{
         $path = "$secretEngineName/$secretPath"
-    }
+    }#endIf
     
+    #Check if uri contains */v1/
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri  + "/" + $Path
+    }else{        
+        $uri  = $VaultObject.uri + "/v1/" + $Path
+    }#endIf
     
-    $uri  = $VaultObject.uri + "v1" + $Path
     
     try{
         $data ="{`"data`": { `"username`": `"$username`", `"password`": `"$Password`" , `"environment`": `"$environment`" , `"Tag`": `"$tag`" , `"server`": `"$server`" }}"
@@ -2190,11 +2212,10 @@ function set-VaultSecret               {
         throw "Cannot convert Secret to JSON"
     }
     
-    
     $new = Invoke-RestMethod -uri $uri  `
-                                -headers $($vaultObject.auth_header) `
-                                -Method post `
-                                -body $data | write-output
+                             -headers $($vaultObject.auth_header) `
+                             -Method post `
+                             -body $data | write-output
     
 } #EndFunction
 function get-VaultSecret               {
@@ -2222,7 +2243,12 @@ function get-VaultSecret               {
     }
     
     
-    $uri  = $VaultObject.uri + "/v1/" + $Path
+    #Check if uri contains */v1/
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri  + "/" + $Path
+    }else{        
+        $uri  = $VaultObject.uri + "/v1/" + $Path
+    }#endIf
       
     try{
         $result = Invoke-RestMethod -uri $uri  `
