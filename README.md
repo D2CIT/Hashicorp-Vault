@@ -61,11 +61,11 @@ get-command -Module PSVault
 
 
 #### Unblock ps1 files in psvault module  after download
-...
+'''
 $Path  = "C:\Program Files\WindowsPowerShell\Modules\psvault" ;
 $files =  get-childitem -path $Path -recurse | where {$_.Attributes -eq "Archive" } ;
 foreach($file in $files){ 
  write-host " - Unblock $($file.FullName)" ; 
  Unblock-File -Path  $file.FullName 
 }#EndForeach
-...
+'''
