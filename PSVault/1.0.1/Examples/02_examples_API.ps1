@@ -341,25 +341,46 @@
     
     
     #endregion
-    
-    
+      
     #region LDAP Examples
-        $uri = $VaultObject.uri + "/v1/auth/ldap/config"
-        $payload = "{
-          `"binddn`": `"cn=vault,ou=Users,dc=example,dc=com`",
-          `"deny_null_bind`": true,
-          `"discoverdn`": false,
-          `"groupattr`": `"cn`",
-          `"groupdn`": `"ou=Groups,dc=example,dc=com`",
-          `"groupfilter`": `"(\u0026(objectClass=group)(member:1.2.840.113556.1.4.1941:={{.UserDN}}))`",
-          `"insecure_tls`": false,
-          `"starttls`": false,
-          `"tls_max_version`": `"tls12`",
-          `"tls_min_version`": `"tls12`",
-          `"url`": `"ldaps://ldap.myorg.com:636`",
-          `"userattr`": `"samaccountname`",
-          `"userdn`": `"ou=Users,dc=example,dc=com`"
-        } "
+    #Create LDAP Connection
+        $uri = "http://127.0.0.1:8200/v1/auth/ldap/config"
+        $payload = "{  
+             `"binddn`"                       : `"`" , 
+             `"case_sensitive_names`"         : false,
+             `"certificate`"                  : `"`" ,
+             `"deny_null_bind`"               : true,
+             `"discoverdn`"                   : false,
+             `"groupattr`"                    : `"cn`",
+             `"groupdn`"                      : `"dc=lab,dc=it`",
+             `"groupfilter`"                  : `"(&(objectClass=group)(member:1.2.840.113556.1.4.1941:={{.UserDN}}))`",
+             `"insecure_tls`"                 : false,
+             `"tls_max_version`"              : `"tls12`",
+             `"tls_min_version`"              : `"tls12`",
+             `"token_explicit_max_ttl`"       : `"0`",
+             `"token_max_ttl`"                : `"0`",
+             `"token_no_default_policy`"      : false,
+             `"token_num_uses`"               : `"0`",
+             `"token_period`"                 : `"0`",
+             `"token_policies`"               : `"{}`",
+             `"token_ttl`"                    : `"0`",
+             `"token_type`"                   : `"default`",
+             `"upndomain`"                    : `"lab.it`",
+             `"url`"                          : `"ldap://lab.it:389`",
+             `"use_pre111_group_cn_behavior`" : false,
+             `"use_token_groups`"             : false,
+             `"userattr`"                     : `"samaccountname`",
+             `"userdn`"                       : `"dc=lab,dc=it`" ,
+             `"token_policies`"               : `"{}`" 
+
+        }"
+        #`"token_bound_cidrs`"            : `"{}`"  --> is not working 
+
+        $result       = Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $payload
+        $LDAPSettings = Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
+        $LDAPSettings 
+
+
         $result = Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $payload
         $result.data.versions
     
