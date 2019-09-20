@@ -1,4 +1,4 @@
-﻿
+
 ############################################################################################################################################
 # install Vault
 ############################################################################################################################################
@@ -29,9 +29,19 @@
 ############################################################################################################################################
   Start-VaultTask
   # Load VauLtobject 
-    $Vaultstate = Invoke-RestMethod -uri $($VaultObject.uri + "sys/seal-status") -Method get
+    $Vaultstate = Invoke-RestMethod -uri $($VaultObject.uri + "/v1/sys/seal-status") -Method get
   # Auto unseal
-    start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash 
+    [string]$VaultPath      = "c:\vault"
+    [string]$UnsealKeyXML   = "$VaultPath\config\UnsealKeys.xml"
+    [string]$AESKeyFile     = "$VaultPath\config\AESTokenHash.txt"
+    [string]$AESKeyFileHash = "$VaultPath\config\AESTokenHash.txt"
+    [string]$modulepath     = "C:\Program Files\WindowsPowerShell\Modules\PSVault\1.0.1\PSVault.psm1"
+    [string]$APIAddress     = "http://127.0.0.1:8200"
+    if(!(test-path $UnsealKeyXML))  { write-warning "could not find $UnsealKeyXML"   ; break}
+    if(!(test-path $AESKeyFileHash)){ write-warning "could not find $AESKeyFileHash" ; break}  
+    if(!(test-path $modulepath))    { write-warning "could not find $modulepath"     ; break}  
+
+    start-VaultautoUnseal -apiaddress $APIAddress  -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash 
 ############################################################################################################################################ 
 # remove Vault
 ############################################################################################################################################
@@ -43,23 +53,30 @@
 ############################################################################################################################################ 
 # Create Secret Engine
 ############################################################################################################################################
-$state = get-vaultstatus -apiaddress $APIaddress
-if($state.initialized -like $false){ 
-    write-warning "Vault is not initialized"; 
-    Break
-}
-if($state.sealed -like $true){ 
-    write-warning "Vault is Sealed"; 
-    start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash
-}
+# Check State of Vault
+    $state = get-vaultstatus -apiaddress $APIaddress
+    if($state.initialized -like $false){ 
+        write-warning "Vault is not initialized"; 
+        Break
+    }
+    if($state.sealed -like $true){ 
+        write-warning "Vault is Sealed"; 
+        start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash
+    }
 
-$vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
+# Load Vaultobject
+    $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
     
 # Create KV version 2
     $SecretEngineName = "kv-v2-test" 
     new-VaultSecretEngine  -SecretEngineName  $SecretEngineName -vaultobject $vaultobject
 # Set KV Engine configuration
-    $uri = $VaultObject.uri + $SecretEngineName + "/config"
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri  + "/" + $SecretEngineName + "/config"
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
+    }#endIf
+    
     $payload = '{
         "max_versions": 5,
         "cas_required": false
@@ -67,14 +84,16 @@ $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKE
     Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $Payload   | Write-Output
        
 # Get KV Engine configuration
-    $uri = $VaultObject.uri + $SecretEngineName + "/config"
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri  + "/" + $SecretEngineName + "/config"
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
+    }#endIf
     Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header  | Write-Output
     
-
 # Remove KV
     remove-VaultSecretEngine -vaultobject $vaultobject -SecretEngineName $SecretEngineName 
 
-   
 # Create /overwrite secret in SecretEngine
     $secretPath  = "vsphere_api/test"
     $username    = "admintest" 
@@ -88,21 +107,38 @@ $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKE
     $cred    
             
 # delete Secret
-    $uri = $VaultObject.uri + $SecretEngineName + "/data/" + $secretPath
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri + "/" + $SecretEngineName + "/data/" + $secretPath
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/data/" + $secretPath
+    }#endIf
+   
     Invoke-RestMethod -Uri $uri -Method Delete -Headers $VaultObject.auth_header
 
 # delete Version Secret
     $payload = '{
         "versions": [1, 2, 3, 4, 5]
     }'
-    $uri = $VaultObject.uri + $SecretEngineName + "/destroy/" + $secretPath
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri + "/" + $SecretEngineName + "/destroy/" + $secretPath
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/destroy/" + $secretPath
+    }#endIf
     Invoke-RestMethod -Uri $uri -Method post -Headers $VaultObject.auth_header -body $payload
     
 # List versions
-    $uri = $VaultObject.uri + $SecretEngineName + "/metadata/" + $secretPath
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri + "/" + $SecretEngineName + "/metadata/" + $secretPath
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/metadata/" + $secretPath
+    }#endIf
     $result = Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
     $result.data.versions
     
-# delete metadata and all versions   
-    $uri = $VaultObject.uri + $SecretEngineName + "/metadata/" + $secretPath
+# delete metadata and all versions  
+    if($($vaultobject.uri) -like "*/v1"){
+        $uri = $VaultObject.uri + "/" + $SecretEngineName + "/metadata/" + $secretPath
+    }else{
+        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/metadata/" + $secretPath
+    }#endIf 
     Invoke-RestMethod -Uri $uri -Method delete -Headers $VaultObject.auth_header 
