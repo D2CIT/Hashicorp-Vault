@@ -1986,8 +1986,8 @@ function new-VaultSecretEngine         {
     
     )
     
-    if($($vaultobject.uri) -like "*/v1"){
-        $uri =  "$($vaultobject.uri)/sys/mounts/$SecretEngineName"  
+    if($($vaultobject.uri) -like "*/v1*"){
+        $uri =  "$($vaultobject.uri)sys/mounts/$SecretEngineName"  
     }else{
         $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"  
     }  
@@ -2062,8 +2062,8 @@ function remove-VaultSecretEngine      {
     
     )
  
-    if($($vaultobject.uri) -like "*/v1"){
-        $uri =  "$($vaultobject.uri)/sys/mounts/$SecretEngineName"  
+    if($($vaultobject.uri) -like "*/v1*"){
+        $uri =  "$($vaultobject.uri)sys/mounts/$SecretEngineName"  
     }else{
         $uri =  "$($vaultobject.uri)/v1/sys/mounts/$SecretEngineName"  
     }  
@@ -2129,14 +2129,13 @@ function get-VaultSecretEngine         {
     )
 
     try{
-        if($($vaultobject.uri) -like "*/v1"){
-            $uri = $VaultObject.uri  + "/" + $SecretEngineName + "/config"
+        if($($vaultobject.uri) -like "*/v1*"){
+            $uri = $VaultObject.uri  + $SecretEngineName + "/config"
         }else{
             $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
         }  
-
-        $uri = $VaultObject.uri  + "/v1/" + $SecretEngineName + "/config"
-        Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header
+      
+        Invoke-RestMethod -Uri $uri -Method get -Headers $VaultObject.auth_header -ErrorAction stop
         return $true
     }catch{
         $Get_Error    = $error[0]
@@ -2180,7 +2179,7 @@ function set-VaultSecret               {
         $VaultObject ,
         $secretEnginename = "kv-v2-newsecret",
         $SecretPath = "eng/api/secret",
-        $KvVersion =2,
+        $KvVersion = 2 ,
         $username = "administrator" ,
         $password = "G3H31m12!" ,
         $environment = "test" , 
@@ -2198,8 +2197,8 @@ function set-VaultSecret               {
     }#endIf
     
     #Check if uri contains */v1/
-    if($($vaultobject.uri) -like "*/v1"){
-        $uri = $VaultObject.uri  + "/" + $Path
+    if($($vaultobject.uri) -like "*/v1*"){
+        $uri = $VaultObject.uri  +  $Path
     }else{        
         $uri  = $VaultObject.uri + "/v1/" + $Path
     }#endIf
@@ -2244,7 +2243,7 @@ function get-VaultSecret               {
     
     
     #Check if uri contains */v1/
-    if($($vaultobject.uri) -like "*/v1"){
+    if($($vaultobject.uri) -like "*/v1*"){
         $uri = $VaultObject.uri  + "/" + $Path
     }else{        
         $uri  = $VaultObject.uri + "/v1/" + $Path
@@ -2671,5 +2670,3 @@ Function Import-PSVaultModule          {
     #remove downloaded repo
     remove-recurse $path\git
 } #EndFunction 
-
-Export-ModuleMember -Function *
