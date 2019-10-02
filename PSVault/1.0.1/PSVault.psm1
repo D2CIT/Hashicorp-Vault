@@ -2670,3 +2670,6 @@ Function Import-PSVaultModule          {
     #remove downloaded repo
     remove-recurse $path\git
 } #EndFunction 
+
+
+Export-ModuleMember -Function *
