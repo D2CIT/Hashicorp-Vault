@@ -130,7 +130,8 @@ if($state.Initialized -like $false){
     if($state.sealed -like $true){ 
         write-warning "Vault is Sealed"; 
         start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML $UnsealKeyXML -AESKeyFileHash $AESKeyFileHash
-    }
+    } 
+    
 
 # Load Vaultobject
     $vaultobject = $(Get-Vaultobject -Address $env:VAULT_ADDR -Token $env:VAULT_TOKEN)  
