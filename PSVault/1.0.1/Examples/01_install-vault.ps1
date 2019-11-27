@@ -1,18 +1,85 @@
 
 ############################################################################################################################################
-# install Vault
+# install Vault via set-DemoInstallVault
 ############################################################################################################################################
-
+#region Install Vault Demo
+$vaultversion   = "1.2.4"
+$DownloadFolder = "$env:USERPROFILE\downloads"
+$rootpath       = "$env:ProgramFiles\Hashicorp"
+$EnableLDAP     = $true
+$LdapDomain     = "d2cit.it"
 # download Vault only
-  set-DemoInstallVault -downloadManual $true -setupfolder c:\vault\download
+set-DemoInstallVault -downloadManual $true -setupfolder $DownloadFolder -Vaultversion $vaultversion  
 
 # install vault from with downloaded zipfile
-  set-DemoInstallVault -Rootpath "c:" -NoInternet $true -setupfolder c:\vault\download
-  #
-  set-DemoInstallVault -Rootpath "c:" -EnableLDAP $false -ldapdomain "lab.it" -NoInternet $true -setupfolder c:\vault\download
+set-DemoInstallVault -Rootpath $rootpath -NoInternet $true -setupfolder $DownloadFolder -Vaultversion $vaultversion 
+# install vault from with downloaded zipfile and enable/configure LDAP Auth
+set-DemoInstallVault -Rootpath $rootpath -EnableLDAP $EnableLDAP  -ldapdomain $LdapDomain -NoInternet $true -setupfolder $DownloadFolder -Vaultversion $vaultversion 
 
 # install vault with internet connection
-  set-DemoInstallVault -Rootpath "c:" -Vaultversion "1.2.2"
+set-DemoInstallVault -Rootpath $rootpath -Vaultversion $vaultversion
+#endregion
+
+############################################################################################################################################
+# install Vault Manual
+############################################################################################################################################
+#region Install Vault manual steps
+$vaultversion   = "1.2.4"
+$DownloadFolder = "$env:USERPROFILE\downloads"
+$VaultPath      = "$env:ProgramFiles\Hashicorp\Vault"
+$apiaddress     = "http://127.0.0.1:8200" 
+$EnableLDAP     = $true
+$LdapDomain     = "d2cit.it"
+
+#run below on a host with internet connection
+$DownloadUrl  = "https://releases.hashicorp.com/vault/" + $vaultVersion + "/vault_" + $vaultVersion + "_windows_amd64.zip"            
+if(!(test-path $DownloadFolder)){mkdir $DownloadFolder}    
+$VaultZip     = "$DownloadFolder\vault_$($vaultversion)_windows_amd64.zip"
+Get-FileFromInternet -url $DownloadUrl -outputfile $VaultZip 
+break
+
+install-Vault -VaultPath $VaultPath -Vaultversion $vaultversion  -vaultzip "$DownloadFolder\vault_$($vaultversion)_windows_amd64.zip"
+
+$State = start-vault -vaultpath $vaultpath -APIaddress $apiAddress -ReturnState 
+
+#Initialize Vault
+if($state.Initialized -like $false){
+  start-VaultInit -apiaddress $APIaddress  -VaultPath $vaultpath -Secure $true -ExportXML
+}
+
+#--------------------------------------------------------
+# Secure AES key with personal HASH (Powershell)
+#--------------------------------------------------------
+# Enrcypt aeskey with current windows credentials and remove.
+  if( (test-path "$VaultPath\config\AESkey.txt")) {
+      New-AESHASH -VaultPath $VaultPath -AESKeyFile "$VaultPath\config\AESkey.txt" -AESKeyFileHash "$VaultPath\config\AESTokenHash.txt"
+      if( (test-path "$VaultPath\config\AESkey.txt") -and (test-path "$VaultPath\config\AESTokenHash.txt") ){ 
+          # overwrite File with empty string
+            "" | out-file "$VaultPath\config\AESkey.txt"  
+          # Remove empty file
+            remove-item "$VaultPath\config\AESkey.txt"   
+      }#EndIf
+  }#EndIf
+
+# Read encrypted keys
+  Get-AESHash -VaultPath $VaultPath  -UnsealKeyXML  "$VaultPath\config\UnsealKeys.xml" -APIAddress $APIaddress -AESKeyFileHash "$VaultPath\config\AESTokenHash.txt"-Verbose
+
+# Create Powershell profile.ps1 with variabels to login into vault.
+  if( !(test-path "$env:USERPROFILE\Documents\WindowsPowerShell")){ mkdir "$env:USERPROFILE\Documents\WindowsPowerShell"}
+  set-VaultPowershellProfile -VaultPath $VaultPath `
+                              -ProfileFile "$env:USERPROFILE\Documents\WindowsPowerShell\profile.ps1" `
+                              -APIAddress $APIaddress
+# Reload Profile
+  . "$env:USERPROFILE\Documents\WindowsPowerShell\profile.ps1" 
+
+# Unseal Vault
+  start-VaultautoUnseal -apiaddress $apiaddress -VaultPath $vaultpath -UnsealKeyXML "$VaultPath\config\UnsealKeys.xml" -AESKeyFileHash "$VaultPath\config\AESTokenHash.txt"
+
+# setup LDAP
+  if($EnableLDAP){
+      set-VaultLDAP -upndomain $LdapDomain
+  }
+ #endregion 
 
 ############################################################################################################################################
 # Stop Vault
@@ -45,7 +112,8 @@
 ############################################################################################################################################ 
 # remove Vault
 ############################################################################################################################################
-  cd c:\
+  # set-location to C: The current location should not be the path to delete otherwise the path will be in use
+  set-location c:\
   Remove-Vault -vaultpath  $vaultpath -confirm $true
   # or remove vault including powershell profile
   Remove-vaultauto -vaultpath $vaultpath
