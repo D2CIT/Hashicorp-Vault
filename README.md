@@ -1,6 +1,5 @@
 # PSVault
-Powershell module for using Hashicorpvault on windows
-
+Powershell module for using HashiCorp Vault on windows
 
 * [Blog Post : HashiCorp Vault on windows with Powershell](https://d2c-it.nl/2019/03/27/hashicorp-vault-on-windows-with-powershell/)
  
