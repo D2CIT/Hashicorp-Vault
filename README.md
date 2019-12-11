@@ -1,19 +1,19 @@
 # PSVault
-Powershell module for using HashiCorp Vault on windows
+PowerShell module for using HashiCorp Vault on windows
 
-* [Blog Post : HashiCorp Vault on windows with Powershell](https://d2c-it.nl/2019/03/27/hashicorp-vault-on-windows-with-powershell/)
+* [Blog Post : HashiCorp Vault on Windows with PowerShell](https://d2c-it.nl/2019/03/27/hashicorp-vault-on-windows-with-powershell/)
  
-This Powershell module can be used for installing, configuring and managing Hashicorp Vault.
+This PowerShell module can be used for installing, configuring and managing HashiCorp Vault.
 It works at the moment through the vault.exe and with the vault api.
 
-This Module contains cmdlets for install, configure and managing Hashicorp vault via Powershell
+This Module contains cmdlets for install, configure and managing Hashicorp vault via PowerShell
 See the Folder Examples.
 
 import-module "C:\Program Files\WindowsPowerShell\Modules\PSVault\1.0.1\PSVault.psm1" -Verbose
 get-command -Module PSVault
 
 
-#### Functions for downloading and unziping software from hashicorp
+#### Functions for downloading and unziping software from HashiCorp
 * Get-Unzip
 * Get-DownloadAndUnzip
 * Get-FileFromInternet
