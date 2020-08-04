@@ -1535,7 +1535,7 @@ Function start-VaultInit               {
                 #Check Status
                 if($VaultObject){
                     $uri  = $VaultObject.uri + "/v1/sys/init"
-                }elseif($apiaddres){
+                }elseif($apiaddress){
                     $uri  = $apiaddress + "/v1/sys/init" 
                 }else{
                     $uri  =  "http://127.0.0.1:8200/v1/sys/init"   
@@ -1790,7 +1790,7 @@ function start-VaultautoUnseal         {
         [string]$AESKeyFileHash = "$VaultPath\config\AESTokenHash.txt" 
           
     )
-    
+    $keys = Import-Clixml -Path $UnsealKeyXML
     #Check Unseal
     $i=1
     do{
